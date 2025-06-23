@@ -12,17 +12,20 @@
       color: white;
       font-family: Arial, sans-serif;
     }
+
     .container {
       max-width: 400px;
       margin: 0 auto;
       padding: 20px;
     }
+
     label {
       display: block;
       margin-bottom: 8px;
       font-weight: bold;
       color: #ccc;
     }
+
     .input-group {
       display: flex;
       align-items: center;
@@ -32,6 +35,7 @@
       padding: 10px;
       margin-bottom: 20px;
     }
+
     input[type="text"],
     input[type="number"] {
       flex: 1;
@@ -41,6 +45,7 @@
       outline: none;
       font-size: 16px;
     }
+
     .input-group button {
       margin-left: 10px;
       background-color: transparent;
@@ -49,11 +54,13 @@
       cursor: pointer;
       font-size: 14px;
     }
+
     .usd-value {
       margin-top: -10px;
       margin-bottom: 20px;
       color: #999;
     }
+
     .next-button {
       width: 100%;
       background-color: #00cc66;
@@ -65,23 +72,14 @@
       border-radius: 50px;
       cursor: pointer;
     }
-    .icon {
-      width: 18px;
-      height: 18px;
-      fill: #00ff99;
-      vertical-align: middle;
-    }
-    .input-group svg {
-      margin-left: 8px;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <label for="address">Address or Domain Name</label>
     <div class="input-group">
-      <input type="text" id="address" value="TQP59pp5o9x6ohP8A6NWqUu9iJ3LfTNEKQ" disabled />
+      <input type="text" id="address" value="TQP59pp5o9x6ohP8A6NWqUu9iJ3LfTNEKQ" />
+      <button onclick="pasteAddress()">Paste</button>
     </div>
 
     <label for="amount">Amount</label>
@@ -93,10 +91,9 @@
 
     <div class="usd-value" id="usdValue">≈ $0.00</div>
 
-    <button class="next-button" onclick="sendUSDT()">Next</button>
+    <button id="Next" class="next-button" onclick="Next()">Next</button>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/tronweb/dist/TronWeb.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
